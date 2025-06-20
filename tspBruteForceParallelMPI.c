@@ -60,15 +60,6 @@ int **allocateDistanceMatrix(int n)
     return matrix;
 }
 
-void freeDistanceMatrix(int **matrix, int n)
-{
-    for (int i = 0; i < n; i++)
-    {
-        free(matrix[i]);
-    }
-    free(matrix);
-}
-
 int *mergeCompleteRoute(int *route, int n, int *baseRoute)
 {
     int *completeRoute = (int *)malloc((n) * sizeof(int)); // n já inclui as 3 fixas
@@ -127,9 +118,9 @@ void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseR
         (*iterationsLeft)--;
         if (*iterationsLeft < 0) return;
 
-        // printPath(route, n + 3, 0, baseRoute);
         pathCount++;
         int cost = calculateCost(route, distanceMatrix, n + 3, baseRoute);
+        // printPath(route, n + 3, cost, baseRoute);
         if (cost < minCost)
         {
             int *completeRoute = mergeCompleteRoute(route, n+3, baseRoute);
@@ -182,24 +173,6 @@ void generateDistanceMatrix(int coordinates[][2], int n, int **distanceMatrix)
     }
 }
 
-void saveResultToFile(const char *fileName, int coordinates[][2], int *bestPath, int n)
-{
-    FILE *file = fopen(fileName, "w");
-    if (file == NULL)
-    {
-        printf("Error: Could not create result file\n");
-        return;
-    }
-
-    for (int i = 0; i <= n; i++)
-    {
-        int id = bestPath[i];
-        fprintf(file, "%d %d\n", coordinates[id][0], coordinates[id][1]);
-    }
-
-    fclose(file);
-}
-
 int main(int argc, char *argv[])
 {
     int CITIES = argc > 1 ? atoi(argv[1]) : 10;
@@ -220,7 +193,6 @@ int main(int argc, char *argv[])
     int my_rank;
     int proc_n;
     int message;
-    int saco[n];
 
     MPI_Init(&argc, &argv);
 
@@ -238,17 +210,7 @@ int main(int argc, char *argv[])
     {
 
         printf("Master has started\n");
-        
-        int cities[n];
-        for (int i = 0; i < n; i++)
-            cities[i] = i;
 
-        for (int i = 0; i < n; i++)
-        {
-            saco[i] = cities[i];
-        }
-
-        // int currentPos = 1;
         int qnt_restante = n - 1;
 
         int totalCombinations = (n - 1) * (n - 2); // combinações de i != j com i,j ≠ 0
@@ -338,8 +300,6 @@ int main(int argc, char *argv[])
         }
         printf("%d ", minPath[0]);
         printf("\n");
-
-        // saveResultToFile("result.txt", coordinates, minPath, n);
 
         printf("Master finished\n");
     }
