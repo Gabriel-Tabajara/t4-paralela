@@ -80,11 +80,18 @@ void printPath(int* route, int n, int cost) {
 }
 
 
-void tryAllRoutes(int* route, int** distanceMatrix, int start, int n) {
+void tryAllRoutes(int* route, int** distanceMatrix, int start, int n, int *iterationsLeft) {
+    if (*iterationsLeft <= 0) {
+        return;
+    }
+
     if (start == n - 1) {
+        (*iterationsLeft)--;
+        if (*iterationsLeft < 0) return;
+
         pathCount++; 
         int cost = calculateCost(route, distanceMatrix, n);
-        printPath(route, n, cost); 
+        // printPath(route, n, cost); 
         if (cost < minCost) {
             minCost = cost;
             memcpy(minPath, route, sizeof(int) * n);
@@ -94,11 +101,15 @@ void tryAllRoutes(int* route, int** distanceMatrix, int start, int n) {
     }
 
     for (int i = start; i < n; i++) {
+        if (*iterationsLeft <= 0) {
+            return;
+        }
+
         int temp = route[start];
         route[start] = route[i];
         route[i] = temp;
 
-        tryAllRoutes(route, distanceMatrix, start + 1, n);
+        tryAllRoutes(route, distanceMatrix, start + 1, n, iterationsLeft);
 
         temp = route[start];
         route[start] = route[i];
@@ -122,23 +133,10 @@ void generateDistanceMatrix(int coordinates[][2], int n, int** distanceMatrix) {
     }
 }
 
-void saveResultToFile(const char* fileName, int coordinates[][2], int* bestPath, int n) {
-    FILE* file = fopen(fileName, "w");
-    if (file == NULL) {
-        printf("Error: Could not create result file\n");
-        return;
-    }
-
-    for (int i = 0; i <= n; i++) {
-        int id = bestPath[i];
-        fprintf(file, "%d %d\n", coordinates[id][0], coordinates[id][1]);
-    }
-
-    fclose(file);
-}
-
 int main(int argc, char *argv[]) {
     int CITIES = argc > 1 ? atoi(argv[1]) : 10;
+
+    int ITERATIONS = argc > 2 ? atoi(argv[2]) : 1000;
 
     int coordinates[CITIES][2];
 
@@ -160,7 +158,7 @@ int main(int argc, char *argv[]) {
     int cities[n];
     for (int i = 0; i < n; i++) cities[i] = i;
 
-    tryAllRoutes(cities, distanceMatrix, 2, n);
+    tryAllRoutes(cities, distanceMatrix, 2, n, &ITERATIONS);
     
     printf("Minimum Cost: %d\n", minCost);
     printf("Best Route: ");
@@ -171,8 +169,6 @@ int main(int argc, char *argv[]) {
     printf("\n");
 
     printf("Number of paths tried: %d\n", pathCount);
-
-    saveResultToFile("result.txt", coordinates, minPath, n);
 
     freeDistanceMatrix(distanceMatrix, n);
     free(minPath);
