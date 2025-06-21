@@ -204,6 +204,8 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &proc_n);
 
+    double start_time = MPI_Wtime();
+
     int **distanceMatrix = allocateDistanceMatrix(n);
 
     minPath = (int *)malloc((n + 3) * sizeof(int));
@@ -397,6 +399,12 @@ int main(int argc, char *argv[])
     }
 
     MPI_Finalize();
+
+    double end_time = MPI_Wtime();
+
+    if (my_rank == 0) {
+        printf("Tempo de execução: %f s\n", end_time - start_time);
+    }
 
     return 0;
 }

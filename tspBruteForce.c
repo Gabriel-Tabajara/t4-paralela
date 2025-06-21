@@ -158,7 +158,10 @@ int main(int argc, char *argv[]) {
     int cities[n];
     for (int i = 0; i < n; i++) cities[i] = i;
 
+    clock_t start_time = clock();
+
     tryAllRoutes(cities, distanceMatrix, 2, n, &ITERATIONS);
+    
     
     printf("Minimum Cost: %d\n", minCost);
     printf("Best Route: ");
@@ -169,9 +172,13 @@ int main(int argc, char *argv[]) {
     printf("\n");
 
     printf("Number of paths tried: %d\n", pathCount);
-
+    
     freeDistanceMatrix(distanceMatrix, n);
     free(minPath);
+    
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    printf("Tempo de execução: %.6f segundos\n", elapsed_time);
 
     return 0;
 }
