@@ -107,7 +107,7 @@ void printPath(int *route, int n, int cost, int *baseRoute)
     free(completeRoute);
 }
 
-void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseRoute, int *iterationsLeft, int threadId, int numThreads, int *its)
+void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseRoute, int *iterationsLeft, int numThreads, int *its)
 {
     if (*iterationsLeft <= 0) {
         return;
@@ -148,7 +148,7 @@ void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseR
         route[start] = route[i];
         route[i] = temp;
 
-        tryAllRoutes(route, distanceMatrix, start + 1, n, baseRoute, iterationsLeft, threadId, numThreads, its);
+        tryAllRoutes(route, distanceMatrix, start + 1, n, baseRoute, iterationsLeft, 1, its);
 
         temp = route[start];
         route[start] = route[i];
@@ -390,7 +390,7 @@ int main(int argc, char *argv[])
                     // }
                     // printf("\n");
                     // printf("Process %d-%d iterations: %d\n", my_rank, threadId, iterations);
-                    tryAllRoutes(localCities, distanceMatrix, threadId, n - 2, baseRoute, &iterations, threadId, NUM_THREADS, &its);
+                    tryAllRoutes(localCities, distanceMatrix, threadId, n - 2, baseRoute, &iterations, NUM_THREADS, &its);
                 }
             }
 
