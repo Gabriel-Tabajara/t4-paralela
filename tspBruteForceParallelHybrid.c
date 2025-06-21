@@ -107,7 +107,7 @@ void printPath(int *route, int n, int cost, int *baseRoute)
     free(completeRoute);
 }
 
-void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseRoute, int *iterationsLeft, int threadId, int numThreads)
+void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseRoute, int *iterationsLeft, int threadId, int numThreads, int *its)
 {
     if (*iterationsLeft <= 0) {
         return;
@@ -116,6 +116,10 @@ void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseR
     if (start == n-1)
     {
         (*iterationsLeft)--;
+        #pragma omp critical 
+        {
+            (*its)++;
+        }
         if (*iterationsLeft < 0) return;
 
         pathCount++;
@@ -134,7 +138,7 @@ void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseR
         return;
     }
 
-    for (int i = start + threadId; i < n; i += numThreads)
+    for (int i = start; i < n; i += numThreads)
     {
         if (*iterationsLeft <= 0) {
             return;
@@ -144,7 +148,7 @@ void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseR
         route[start] = route[i];
         route[i] = temp;
 
-        tryAllRoutes(route, distanceMatrix, start + 1, n, baseRoute, iterationsLeft, threadId, numThreads);
+        tryAllRoutes(route, distanceMatrix, start + 1, n, baseRoute, iterationsLeft, threadId, numThreads, its);
 
         temp = route[start];
         route[start] = route[i];
@@ -308,6 +312,8 @@ int main(int argc, char *argv[])
     }
     else
     {
+        int its = 0;
+
         printf("Process %d started\n", my_rank);
         while (true)
         {
@@ -383,7 +389,8 @@ int main(int argc, char *argv[])
                     //     printf("%d ", localCities[i]);
                     // }
                     // printf("\n");
-                    tryAllRoutes(localCities, distanceMatrix, 0, n - 2, baseRoute, &iterations, threadId, NUM_THREADS);
+                    // printf("Process %d-%d iterations: %d\n", my_rank, threadId, iterations);
+                    tryAllRoutes(localCities, distanceMatrix, threadId, n - 2, baseRoute, &iterations, threadId, NUM_THREADS, &its);
                 }
             }
 
@@ -398,6 +405,7 @@ int main(int argc, char *argv[])
                 //printf("-> ");
         // }
         //printf("\n");
+        printf("Process %d finished with %d iterations\n", my_rank, its);
     }
 
     MPI_Finalize();
