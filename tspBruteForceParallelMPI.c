@@ -65,10 +65,9 @@ int *mergeCompleteRoute(int *route, int n, int *baseRoute)
     int *completeRoute = (int *)malloc((n) * sizeof(int)); // n já inclui as 3 fixas
     completeRoute[0] = baseRoute[0];
     completeRoute[1] = baseRoute[1];
-    completeRoute[2] = baseRoute[2];
-    for (int i = 3; i < n; i++)
+    for (int i = 2; i < n; i++)
     {
-        completeRoute[i] = route[i - 3];
+        completeRoute[i] = route[i - 2];
     }
     return completeRoute;
 }
@@ -119,12 +118,12 @@ void tryAllRoutes(int *route, int **distanceMatrix, int start, int n, int *baseR
         if (*iterationsLeft < 0) return;
 
         pathCount++;
-        int cost = calculateCost(route, distanceMatrix, n + 3, baseRoute);
+        int cost = calculateCost(route, distanceMatrix, n + 2, baseRoute);
         // printPath(route, n + 3, cost, baseRoute);
         if (cost < minCost)
         {
-            int *completeRoute = mergeCompleteRoute(route, n+3, baseRoute);
-            memcpy(minPath, completeRoute, sizeof(int) * (n+3));
+            int *completeRoute = mergeCompleteRoute(route, n+2, baseRoute);
+            memcpy(minPath, completeRoute, sizeof(int) * (n+2));
             
             minCost = cost;
             free(completeRoute);
@@ -215,7 +214,7 @@ int main(int argc, char *argv[])
 
         int qnt_restante = n - 1;
 
-        int totalCombinations = (n - 1) * (n - 2); // combinações de i != j com i,j ≠ 0
+        int totalCombinations = (n - 1);
         int currentPos = 0;
 
         int interationsLeft = ITERATIONS;
@@ -235,22 +234,19 @@ int main(int argc, char *argv[])
             message[0] = iterationsPerCombination < interationsLeft ? iterationsPerCombination : interationsLeft; 
             message[1] = 0;
 
-            int i = (currentPos / (n - 2)) + 1;
-            int j = (currentPos % (n - 2)) + 1;
-            if (j >= i) j++;  // pular quando j == i
+            int i = (currentPos % (n - 1)) + 1;
 
-            if (j >= n) {
+            if (i >= n) {
                 currentPos++;
                 free(message);
                 continue;
             }
 
             message[2] = i;
-            message[3] = j;
 
-            int idx = 4;
+            int idx = 3;
             for (int k = 1; k < n; k++) {
-                if (k != i && k != j)
+                if (k != i)
                     message[idx++] = k;
             }
 
@@ -344,10 +340,10 @@ int main(int argc, char *argv[])
             // printf("\n");
     
             int cities[n];
-            for (int i = 3; i < n; i++)
-                cities[i - 3] = message[i+1];
+            for (int i = 2; i < n; i++)
+                cities[i - 2] = message[i+1];
 
-            int baseRoute[3] = {message[1], message[2], message[3]};
+            int baseRoute[2] = {message[1], message[2]};
             int iterationsLeft = message[0];
             // printf("Process %d will send cities: ", my_rank);
             // for (int i = 0; i < n - 3; i++)
@@ -357,7 +353,7 @@ int main(int argc, char *argv[])
             // printf("\n");
             // printf("Process %d will calculate routes with base route: %d -> %d -> %d\n", my_rank, baseRoute[0], baseRoute[1], baseRoute[2]);
             // printf("Process %d has %d iterations left\n", my_rank, iterationsLeft);
-            tryAllRoutes(cities, distanceMatrix, 0, n - 3, baseRoute, &iterationsLeft);
+            tryAllRoutes(cities, distanceMatrix, 0, n - 2, baseRoute, &iterationsLeft);
 
             free(message);
         }
